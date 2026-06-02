@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Console Matchmaker: PS5 vs Switch 2</title>
+    <style>
+        :root {
+            --bg-dark: #0a0e17;
+            --card-bg: rgba(18, 26, 44, 0.6);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-main: #f0f4f9;
+            --text-muted: #8a99ad;
+            --ps5-blue: #00439c;
+            --ps5-glow: #0072ff;
+            --switch-red: #e60012;
+            --switch-glow: #ff4d4d;
+            --accent-grad: linear-gradient(135deg, #0072ff 0%, #e60012 100%);
+            --radius-lg: 16px;
+            --radius-md: 10px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(0, 114, 255, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(230, 0, 12, 0.12) 0%, transparent 40%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 720px;
+            perspective: 1000px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            transition: var(--transition);
+            transform-style: preserve-3d;
+        }
+
+        /* Screen Transitions */
+        .screen {
+            display: none;
+            opacity: 0;
+            transform: translateY(15px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .screen.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Elements Styling */
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 12px;
+            background: linear-gradient(120deg, #fff 30%, var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            text-align: center;
+            font-size: 1.05rem;
+            margin-bottom: 35px;
+            line-height: 1.5;
+        }
+
+        .console-showcase {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 35px;
+        }
+
+        .console-badge {
+            flex: 1;
+            padding: 20px;
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .badge-ps5 h3 { color: #5694e9; text-shadow: 0 0 10px rgba(0,114,255,0.3); }
+        .badge-switch h3 { color: #ff5964; text-shadow: 0 0 10px rgba(230,0,18,0.3); }
+
+        .console-badge p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+
+        /* Buttons & Interactions */
+        .btn {
+            background: var(--accent-grad);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            width: 100%;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(230, 0, 12, 0.25);
+            filter: brightness(1.1);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin-bottom: 30px;
+        }
+
+        .progress-meta {
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .progress-bar-outer {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar-inner {
+            height: 100%;
+            width: 0%;
+            background: var(--accent-grad);
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Quiz Body */
+        .question-text {
+            font-size: 1.4rem;
+            font-weight: 600;
+            line-height: 1.4;
+            margin-bottom: 25px;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .option-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            padding: 18px 22px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateX(4px);
+        }
+
+        .option-item.selected {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #fff;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+        }
+
+        .radio-dot {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--text-muted);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+
+        .option-item.selected .radio-dot {
+            border-color: #fff;
+            background: #fff;
+        }
+
+        .option-item.selected .radio-dot::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--bg-dark);
+            border-radius: 50%;
+        }
+
+        .option-label {
+            font-size: 1.05rem;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .nav-controls {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            width: auto;
+            padding: 14px 24px;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--text-muted);
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* Results Screen Panels */
+        .winner-card {
+            text-align: center;
+            padding: 30px;
+            border-radius: var(--radius-md);
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .winner-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            opacity: 0.15;
+            z-index: 0;
+        }
+
+        .winner-card.ps5-win {
+            background: linear-gradient(180deg, rgba(0,114,255,0.2) 0%, rgba(0,0,0,0) 100%);
+            border: 1px solid rgba(0,114,255,0.3);
+        }
+        .winner-card.switch-win {
+            background: linear-gradient(180deg, rgba(230,0,18,0.2) 0%, rgba(0,0,0,0) 100%);
+            border: 1px solid rgba(230,0,18,0.3);
+        }
+
+        .winner-title {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .ps5-win .winner-title { color: #fff; text-shadow: 0 0 20px var(--ps5-glow); }
+        .switch-win .winner-title { color: #fff; text-shadow: 0 0 20px var(--switch-glow); }
+
+        .winner-desc {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #e2e8f0;
+            position: relative;
+            z-index: 1;
+            max-width: 550px;
+            margin: 0 auto;
+        }
+
+        /* Metric Charts */
+        .metrics-container {
+            margin-bottom: 30px;
+        }
+
+        .metric-row {
+            margin-bottom: 20px;
+        }
+
+        .metric-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .metric-bar-track {
+            height: 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+        }
+
+        .metric-fill-ps5 {
+            height: 100%;
+            background: var(--ps5-glow);
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .metric-fill-switch {
+            height: 100%;
+            background: var(--switch-glow);
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .verdict-list {
+            background: rgba(0,0,0,0.2);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .verdict-list h4 {
+            margin-bottom: 12px;
+            font-size: 1.05rem;
+            color: #fff;
+        }
+
+        .verdict-list ul {
+            list-style: none;
+        }
+
+        .verdict-list li {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            padding-left: 18px;
+            position: relative;
+            line-height: 1.4;
+        }
+
+        .verdict-list li::before {
+            content: '✦';
+            position: absolute;
+            left: 0;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        @media(max-width: 600px) {
+            .card { padding: 25px 20px; }
+            .console-showcase { flex-direction: column; gap: 12px; }
+            h1 { font-size: 1.8rem; }
+            .winner-title { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+        
+        <div id="welcome-screen" class="screen active">
+            <h1>Console Matchmaker</h1>
+            <p class="subtitle">PS5 Pro/Slim vs. Nintendo Switch 2. Discover your perfect ecosystem based on your gaming habits, budget, lifestyle, and technical desires.</p>
+            
+            <div class="console-showcase">
+                <div class="console-badge badge-ps5">
+                    <h3>PlayStation 5</h3>
+                    <p>4K 120Hz Home Cinematic Experience, Ultra High-Speed SSD, Ray-Tracing Realism, Groundbreaking Immersive Exclusives.</p>
+                </div>
+                <div class="console-badge badge-switch">
+                    <h3>Nintendo Switch 2</h3>
+                    <p>7.9" 1080p 120Hz Handheld Display, Hybrid Docked 4K Setup, Multi-functional Magnetic Joy-Cons, Signature First-Party IPs.</p>
+                </div>
+            </div>
+
+            <button class="btn" onclick="quizApp.startQuiz()">
+                Begin Diagnosis
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </button>
+        </div>
+
+        <div id="quiz-screen" class="screen">
+            <div class="progress-container">
+                <div class="progress-meta">
+                    <span id="progress-text">Question 1 of 8</span>
+                    <span id="progress-percent">12%</span>
+                </div>
+                <div class="progress-bar-outer">
+                    <div id="progress-bar" class="progress-bar-inner"></div>
+                </div>
+            </div>
+
+            <div id="question-box">
+                <p class="question-text" id="question-text">Loading diagnostic parameters...</p>
+                <div class="options-list" id="options-container">
+                    </div>
+            </div>
+
+            <div class="nav-controls">
+                <button class="btn btn-secondary" id="back-btn" onclick="quizApp.prevQuestion()">Back</button>
+                <button class="btn" id="next-btn" onclick="quizApp.nextQuestion()" style="width: auto; min-width: 140px;">Next</button>
+            </div>
+        </div>
+
+        <div id="result-screen" class="screen">
+            <div id="winner-banner" class="winner-card">
+                <p style="text-transform: uppercase; font-size: 0.85rem; font-weight: 700; letter-spacing: 2px; color: var(--text-muted)">Your Optimized Match</p>
+                <h2 id="winner-name" class="winner-title">System Error</h2>
+                <p id="winner-description" class="winner-desc">Analyzing computing vectors...</p>
+            </div>
+
+            <h3 style="margin-bottom: 15px; font-size: 1.2rem;">Bi-Directional Matrix Breakdown</h3>
+            <div class="metrics-container" id="metrics-box">
+                </div>
+
+            <div class="verdict-list">
+                <h4 id="verdict-title">Why this matters for you</h4>
+                <ul id="verdict-bullets">
+                    </ul>
+            </div>
+
+            <button class="btn btn-secondary" style="width: 100%;" onclick="quizApp.resetQuiz()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transform: scaleX(-1);"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                Recalibrate Parameters
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const quizData = {
+        questions: [
+            {
+                text: "Primary Environment: Where do you envision spending 80% of your gameplay time?",
+                options: [
+                    { text: "Stationed firmly on a home theater setup, TV, or high-end monitor.", scores: { ps5: 3, switch2: 0 } },
+                    { text: "Fluctuating between handheld on the couch, traveling, commutes, and occasional TV docking.", scores: { ps5: 0, switch2: 3 } },
+                    { text: "Evenly balanced split between dedicated home setups and portable gaming layouts.", scores: { ps5: 1, switch2: 2 } }
+                ]
+            },
+            {
+                text: "Aesthetic & Technical Priorities: Which performance matrix excites you most?",
+                options: [
+                    { text: "Ray-tracing capabilities, true high-fidelity 4K canvas assets, and flawless 60-120 FPS tracking.", scores: { ps5: 3, switch2: 0 } },
+                    { text: "Cleverly engineered custom hardware allowing fluid 1080p 120Hz handheld performance upscaling to 4K docked.", scores: { ps5: 0, switch2: 3 } },
+                    { text: "Lightning-fast near-zero game loading speeds driven by large high-velocity standard NVMe SSDs.", scores: { ps5: 2, switch2: 1 } }
+                ]
+            },
+            {
+                text: "Software Architecture: Identify your mandatory, must-have software catalog.",
+                options: [
+                    { text: "Cinematic narrative epics, high-octane realistic sports/shooters, and mature dark fantasy worlds.", scores: { ps5: 3, switch2: 0 } },
+                    { text: "Legendary platformers, quirky tactical party setups, cozy indies, and whimsical monster collection.", scores: { ps5: 0, switch2: 3 } },
+                    { text: "A broad mix of third-party entries, massive live-service open-worlds, and localized multiplayer titles.", scores: { ps5: 1, switch2: 1 } }
+                ]
+            },
+            {
+                text: "Social Integration & Layouts: How do you generally engage in multiplayer matches?",
+                options: [
+                    { text: "Online competitive ecosystems, chat clients, server matchmaking playlists, and cross-play arenas.", scores: { ps5: 3, switch2: 1 } },
+                    { text: "Couch-co-op, physically handing controllers to adjacent friends, or playing together in a local room.", scores: { ps5: 0, switch2: 3 } },
+                    { text: "Solitary single-player focus. I rarely interface with others during standard playthrough loops.", scores: { ps5: 1, switch2: 1 } }
+                ]
+            },
+            {
+                text: "Hardware Accessories & Quirks: Which hardware feature feels most transformative?",
+                options: [
+                    { text: "Haptic feedback triggers that mimic tension, dynamic structural rumble, and high-precision 3D directional audio.", scores: { ps5: 3, switch2: 0 } },
+                    { text: "Detachable magnetic controllers, immediate multi-touch interactions, and integrated microphone modules.", scores: { ps5: 0, switch2: 3 } }
+                ]
+            },
+            {
+                text: "Legacy Software: What is your current situation regarding backward compatibility?",
+                options: [
+                    { text: "I have an extensive library of PS4 games or digital items I want enhanced and carried forward.", scores: { ps5: 3, switch2: 0 } },
+                    { text: "I have existing original physical or digital Nintendo Switch cartridges that I need seamlessly preserved.", scores: { ps5: 0, switch2: 3 } },
+                    { text: "This is a clean slate deployment; legacy compatibility doesn't influence my roadmap.", scores: { ps5: 1, switch2: 1 } }
+                ]
+            },
+            {
+                text: "Budget Allocation Strategy: What is your perspective on hardware and game investment?",
+                options: [
+                    { text: "Willing to invest $450-$500+ premium for core computational power, acknowledging larger modern game installation footprints.", scores: { ps5: 3, switch2: 1 } },
+                    { text: "Prefer an approachable baseline cost around $395-$450, prioritizing physical game-sharing cards and expandable memory card storage.", scores: { ps5: 0, switch2: 3 } }
+                ]
+            }
+        ],
+        profiles: {
+            ps5: {
+                name: "PlayStation 5",
+                class: "ps5-win",
+                desc: "You prioritize pure, uncompromised performance and cinematic theater design. Your gaming lifestyle matches a high-fidelity station built around top-tier graphical power, ultra-dense SSD pipelines, and complex modern game titles.",
+                bullets: [
+                    "Optimal matching for pristine 4K resolution deployment and ultra-high fluid refresh limits up to 120Hz.",
+                    "Provides instant access to high-performance current-gen blockbusters and sprawling third-party online battlegrounds.",
+                    "The Advanced DualSense sound and physical haptics fit your desire for deep interactive sensory immersion."
+                ]
+            },
+            switch2: {
+                name: "Nintendo Switch 2",
+                class: "switch-win",
+                desc: "You value freedom, innovative hardware versatility, and timeless first-party creative mastery. Your schedule calls for a hybrid system that flows between handheld travel accessibility and immersive living room play.",
+                bullets: [
+                    "Fully leverages the 7.9-inch native 1080p 120Hz upgraded display alongside the integrated magnetic Joy-Con system.",
+                    "Guarantees immediate zero-compromise access to Nintendo's celebrated ecosystem of legendary franchises and indie hits.",
+                    "Provides excellent physical media convenience, seamless backwards-compatible cartridges, and unmatched local party configurations."
+                ]
+            }
+        }
+    };
+
+    class QuizEngine {
+        constructor(data) {
+            this.questions = data.questions;
+            this.profiles = data.profiles;
+            this.currentIndex = 0;
+            this.userSelections = new Array(this.questions.length).fill(null);
+        }
+
+        startQuiz() {
+            this.switchScreen('welcome-screen', 'quiz-screen');
+            this.currentIndex = 0;
+            this.userSelections.fill(null);
+            this.loadQuestion();
+        }
+
+        switchScreen(hideId, showId) {
+            const hideEl = document.getElementById(hideId);
+            const showEl = document.getElementById(showId);
+            
+            hideEl.style.opacity = '0';
+            hideEl.style.transform = 'translateY(-15px)';
+            
+            setTimeout(() => {
+                hideEl.classList.remove('active');
+                showEl.classList.add('active');
+                setTimeout(() => {
+                    showEl.style.opacity = '1';
+                    showEl.style.transform = 'translateY(0)';
+                }, 50);
+            }, 400);
+        }
+
+        loadQuestion() {
+            const currentQuestion = this.questions[this.currentIndex];
+            
+            // Progress bars rendering
+            const currentProgress = Math.round(((this.currentIndex) / this.questions.length) * 100);
+            document.getElementById('progress-text').innerText = `Parameter Matrix: ${this.currentIndex + 1} of ${this.questions.length}`;
+            document.getElementById('progress-percent').innerText = `${currentProgress}%`;
+            document.getElementById('progress-bar').style.width = `${currentProgress}%`;
+
+            // Setup Question elements
+            document.getElementById('question-text').innerText = currentQuestion.text;
+            
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            currentQuestion.options.forEach((opt, idx) => {
+                const isSelected = this.userSelections[this.currentIndex] === idx;
+                const optionNode = document.createElement('div');
+                optionNode.className = `option-item ${isSelected ? 'selected' : ''}`;
+                optionNode.onclick = () => this.selectOption(idx);
+                
+                optionNode.innerHTML = `
+                    <div class="radio-dot"></div>
+                    <span class="option-label">${opt.text}</span>
+                `;
+                optionsContainer.appendChild(optionNode);
+            });
+
+            // Toggle back controller transparency values
+            document.getElementById('back-btn').style.visibility = this.currentIndex === 0 ? 'hidden' : 'visible';
+            document.getElementById('next-btn').innerText = this.currentIndex === this.questions.length - 1 ? 'Compute Alignment' : 'Next';
+        }
+
+        selectOption(index) {
+            this.userSelections[this.currentIndex] = index;
+            const items = document.querySelectorAll('.option-item');
+            items.forEach((item, idx) => {
+                if(idx === index) item.classList.add('selected');
+                else item.classList.remove('selected');
+            });
+            
+            // Subtle forward progress delay auto trigger for satisfying UX flow
+            setTimeout(() => {
+                this.nextQuestion();
+            }, 300);
+        }
+
+        nextQuestion() {
+            if (this.userSelections[this.currentIndex] === null) {
+                alert('Please select an operational metric parameter to proceed.');
+                return;
+            }
+
+            if (this.currentIndex < this.questions.length - 1) {
+                this.currentIndex++;
+                this.loadQuestion();
+            } else {
+                this.evaluateCalculations();
+            }
+        }
+
+        prevQuestion() {
+            if (this.currentIndex > 0) {
+                this.currentIndex--;
+                this.loadQuestion();
+            }
+        }
+
+        evaluateCalculations() {
+            let totalPS5 = 0;
+            let totalSwitch2 = 0;
+
+            this.userSelections.forEach((selectedOptionIndex, questionIndex) => {
+                const scores = this.questions[questionIndex].options[selectedOptionIndex].scores;
+                totalPS5 += scores.ps5;
+                totalSwitch2 += scores.switch2;
+            });
+
+            const combinedSum = totalPS5 + totalSwitch2;
+            const percentagePS5 = combinedSum > 0 ? Math.round((totalPS5 / combinedSum) * 100) : 50;
+            const percentageSwitch2 = combinedSum > 0 ? Math.round((totalSwitch2 / combinedSum) * 100) : 50;
+
+            const finalWinner = totalPS5 >= totalSwitch2 ? 'ps5' : 'switch2';
+            this.renderFinalAssessment(finalWinner, percentagePS5, percentageSwitch2);
+        }
+
+        renderFinalAssessment(winnerKey, ps5Pct, switchPct) {
+            const profile = this.profiles[winnerKey];
+            const banner = document.getElementById('winner-banner');
+            
+            banner.className = `winner-card ${profile.class}`;
+            document.getElementById('winner-name').innerText = profile.name;
+            document.getElementById('winner-description').innerText = profile.desc;
+
+            // Generate targeted matrix bar structures
+            const metricsBox = document.getElementById('metrics-box');
+            metricsBox.innerHTML = `
+                <div class="metric-row">
+                    <div class="metric-info">
+                        <span>PlayStation 5 Architecture Affinity</span>
+                        <span>${ps5Pct}%</span>
+                    </div>
+                    <div class="metric-bar-track">
+                        <div class="metric-fill-ps5" style="width: ${ps5Pct}%"></div>
+                    </div>
+                </div>
+                <div class="metric-row">
+                    <div class="metric-info">
+                        <span>Nintendo Switch 2 System Affinity</span>
+                        <span>${switchPct}%</span>
+                    </div>
+                    <div class="metric-bar-track">
+                        <div class="metric-fill-switch" style="width: ${switchPct}%"></div>
+                    </div>
+                </div>
+            `;
+
+            // Map reasoning elements
+            const bulletContainer = document.getElementById('verdict-bullets');
+            bulletContainer.innerHTML = '';
+            profile.bullets.forEach(bulletText => {
+                const li = document.createElement('li');
+                li.innerText = bulletText;
+                bulletContainer.appendChild(li);
+            });
+
+            this.switchScreen('quiz-screen', 'result-screen');
+        }
+
+        resetQuiz() {
+            this.switchScreen('result-screen', 'welcome-screen');
+        }
+    }
+
+    // Instantiate active engine sequence 
+    const quizApp = new QuizEngine(quizData);
+</script>
+</body>
+</html>
